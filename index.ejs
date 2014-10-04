@@ -1,0 +1,98 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="keywords" content="无秘聊天室,匿名,聊天,无秘,聊天室">
+    <meta  name="description" content="匿名的聊天室，畅所欲言，匿名交友">
+    <title>无秘聊天室</title>
+    <script src="http://qzs.qq.com/ac/lib/jquery/2.0.0/jquery.js"></script>
+    <script src="http://ossweb-img.qq.com/images/js/socket/socket.io.js"></script>
+    <link rel="stylesheet" href="/chatroom/css/main.css">
+</head>
+<body>
+    <div class="navbar-wrap">
+        <div class="navbar">
+            <h1 class="logo"><a href="http://www.iam80s.com" title="80s后生仔-有态度的80后导购网">80s后生仔</a></h1>
+        	<div class="nav">
+        		<div class="tab-one">无秘聊天室</div>    
+        	</div>
+        </div>
+    </div>
+	<div class="header">
+		<div class="chatroom-logo"></div>
+		<div></div>
+	</div>
+	<div class="content">
+		<ul class="history-list">
+			<%for(var i = 0; i < history.length; i++){%>
+				<li><%=history[i]%></li>
+			<%}%>
+		</ul>
+		<div class="history">
+			<a class="txt">以上为历史记录</a>
+		</div>
+		<div>
+		   <ul id="j_incomingChatMessages"></ul>
+	    </div>
+	    <div class="user-area">
+			我是<input type="text" id="j_name" value="" readonly="true">
+		    <input type="button" id="j_randomName" value="换个昵称">
+		    <br />
+		    说：<input type="text" id="j_outgoingChatMessage">
+		    <input type="button" id="j_send" value="发送">	
+		</div>
+	</div>
+
+</body>
+<script>
+        $(function(){
+            //随机用户名字
+            var adjArr = ['奇葩的','搞笑的','可爱的','神经','暴力','聪明','脑残','阴险','面瘫'];
+            var nameArr = ['熊','兔','小叮当','猫','狗','小丸子','圣斗士','哪吒','包大人','猪','企鹅','喜羊羊'];
+            var randomOne,randomTwo;
+            function randomName(){
+                randomOne = parseInt(Math.random()*adjArr.length);
+                randomTwo = parseInt(Math.random()*nameArr.length);                
+                $('#j_name').val(adjArr[randomOne]+nameArr[randomTwo]);
+            }
+            function sendMessage(){
+                iosocket.send($('#j_name').val(), $('#j_outgoingChatMessage').val());
+                /*iosocket.emit('message',{
+                    user : $('#j_name').val(), 
+                    msg : $('#j_outgoingChatMessage').val()
+                });*/
+                $('#j_incomingChatMessages').append($('<li></li>').text($('#j_name').val() + '说: ' + $('#j_outgoingChatMessage').val()));
+                $('#j_outgoingChatMessage').val('');
+            }
+
+            randomName();
+
+            var iosocket = io.connect("http://182.254.170.27:8878");
+ 
+            iosocket.on('connect', function () {
+                $('#j_incomingChatMessages').append($('<li class="system-txt">进入聊天室</li>'));
+ 
+            });
+            iosocket.on('user message', function(user, message) {
+                $('#j_incomingChatMessages').append($('<li></li>').text(user + '说: ' + message));
+            });
+            iosocket.on('disconnect', function() {
+                $('#j_incomingChatMessages').append('<li class="system-txt">暂时失联</li>');
+            });
+ 
+            $('#j_outgoingChatMessage').keypress(function(event) {
+                if(event.which == 13) {
+                    event.preventDefault();
+                    sendMessage();
+                }
+            });
+            $('#j_send').bind('click',function(event) {
+                event.preventDefault();
+                sendMessage();
+            });  
+
+            $('#j_randomName').bind('click',function(){
+                randomName();
+            });  
+        });
+    </script>
+</html>
